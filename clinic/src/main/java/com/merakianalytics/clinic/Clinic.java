@@ -273,7 +273,7 @@ public abstract class Clinic {
 
     private static int run(final Class<?> clazz, String[] args, final String executableName, final String help, final boolean automatic) {
         final Map<String, Command> commands = Arrays.stream(clazz.getDeclaredMethods()).filter((final Method method) -> {
-            return Modifier.isStatic(method.getModifiers()) && !"main".equals(method.getName())
+            return !method.isSynthetic() && Modifier.isStatic(method.getModifiers()) && !"main".equals(method.getName())
                 && (automatic || method.isAnnotationPresent(com.merakianalytics.clinic.annotations.Command.class)
                     || method.isAnnotationPresent(com.merakianalytics.clinic.annotations.AutoCommand.class));
         }).map((final Method method) -> Command.get(executableName, method)).collect(Collectors.toMap(Command::getName, Function.identity()));
