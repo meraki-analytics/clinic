@@ -105,11 +105,6 @@
 						<goals>
 							<goal>jar</goal>
 						</goals>
-						<configuration>
-							<additionalOptions>
-								<additionalOption>-html5</additionalOption>
-							</additionalOptions>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>
