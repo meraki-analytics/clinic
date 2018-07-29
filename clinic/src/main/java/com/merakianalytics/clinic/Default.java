@@ -36,22 +36,17 @@ public abstract class Default {
     public static final String STRING = "null"; // This is used because Annotations can't use null as default values
 
     /**
-     * Gets the default @Command annotation for an unannotated method
+     * Gets the default @AutoCommand annotation for an unannotated method
      *
      * @param method
      *        the unannotated method
-     * @return the default @Command annotation
+     * @return the default @AutoCommand annotation
      */
-    public static com.merakianalytics.clinic.annotations.Command command(final Method method) {
-        return new com.merakianalytics.clinic.annotations.Command() {
+    public static com.merakianalytics.clinic.annotations.AutoCommand command(final Method method) {
+        return new com.merakianalytics.clinic.annotations.AutoCommand() {
             @Override
             public Class<? extends Annotation> annotationType() {
-                return com.merakianalytics.clinic.annotations.Command.class;
-            }
-
-            @Override
-            public boolean automatic() {
-                return true;
+                return com.merakianalytics.clinic.annotations.AutoCommand.class;
             }
 
             @Override

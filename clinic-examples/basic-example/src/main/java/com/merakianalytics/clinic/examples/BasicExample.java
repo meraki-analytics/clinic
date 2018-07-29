@@ -10,10 +10,6 @@ public class BasicExample {
         System.out.println(x + y);
     }
 
-    public static void main(final String[] args) {
-        System.exit(Clinic.cli(BasicExample.class).args(args).launchCommand("basic-example").run());
-    }
-
     @Command
     public static void multiply(@Option(required = true) final int[] values) {
         int product = 1;
@@ -26,5 +22,9 @@ public class BasicExample {
     @Command
     public static void print(@Option(defaultString = "Hello, world!") final String message) {
         System.out.println(message);
+    }
+    
+    public static void main(final String[] args) {
+        System.exit(Clinic.cli(BasicExample.class).args(args).executableName("basic-example").run());
     }
 }

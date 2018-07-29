@@ -2,6 +2,8 @@ package com.merakianalytics.clinic.exceptions;
 
 /**
  * An exception relating to clinic
+ *
+ * @since 1.0.0
  */
 public class ClinicException extends RuntimeException {
     private static final long serialVersionUID = 9222740639776898149L;

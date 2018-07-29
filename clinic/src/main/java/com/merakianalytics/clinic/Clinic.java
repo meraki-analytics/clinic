@@ -33,14 +33,14 @@ public abstract class Clinic {
     public static class Builder {
         private static final String[] DEFAULT_ARGS = new String[0];
         private static final boolean DEFAULT_AUTOMATIC = false;
+        private static final String DEFAULT_EXECUTABLE_NAME = "program";
         private static final String DEFAULT_HELP = null;
-        private static final String DEFAULT_LAUNCH_COMMAND = "program";
 
         private String[] args = DEFAULT_ARGS;
         private boolean automatic = DEFAULT_AUTOMATIC;
         private final Class<?> clazz;
+        private String executableName = DEFAULT_EXECUTABLE_NAME;
         private String help = DEFAULT_HELP;
-        private String launchCommand = DEFAULT_LAUNCH_COMMAND;
 
         private Builder(final Class<?> clazz) {
             this.clazz = clazz;
@@ -94,9 +94,23 @@ public abstract class Clinic {
         public Future<Integer> await() {
             final CompletableFuture<Integer> future = new CompletableFuture<>();
             new Thread(() -> {
-                future.complete(Clinic.run(clazz, args, launchCommand, help, automatic));
+                future.complete(Clinic.run(clazz, args, executableName, help, automatic));
             }).start();
             return future;
+        }
+
+        /**
+         * Sets the intended executable name that will be used to launch your Java application once it is deployed. This will be used as part of the --help
+         * prompt.
+         *
+         * @param executableName
+         *        the executable name to use in --help prompts
+         * @return the application builder
+         * @since 1.0.0
+         */
+        public Builder executableName(final String executableName) {
+            this.executableName = executableName;
+            return this;
         }
 
         /**
@@ -107,7 +121,7 @@ public abstract class Clinic {
          * @since 1.0.0
          */
         public void execute(final Executor executor) {
-            executor.execute(Clinic.getRunnable(clazz, args, launchCommand, help, automatic));
+            executor.execute(Clinic.getRunnable(clazz, args, executableName, help, automatic));
         }
 
         /**
@@ -117,7 +131,7 @@ public abstract class Clinic {
          * @since 1.0.0
          */
         public Runnable getRunnable() {
-            return Clinic.getRunnable(clazz, args, launchCommand, help, automatic);
+            return Clinic.getRunnable(clazz, args, executableName, help, automatic);
         }
 
         /**
@@ -127,7 +141,7 @@ public abstract class Clinic {
          * @since 1.0.0
          */
         public Thread getThread() {
-            return new Thread(Clinic.getRunnable(clazz, args, launchCommand, help, automatic));
+            return new Thread(Clinic.getRunnable(clazz, args, executableName, help, automatic));
         }
 
         /**
@@ -140,20 +154,6 @@ public abstract class Clinic {
          */
         public Builder help(final String help) {
             this.help = help;
-            return this;
-        }
-
-        /**
-         * Sets the intended base launch command that will be used to launch your Java application once it is deployed. This will be used as part of the --help
-         * prompt.
-         *
-         * @param launchCommand
-         *        the launch command to use in --help prompts
-         * @return the application builder
-         * @since 1.0.0
-         */
-        public Builder launchCommand(final String launchCommand) {
-            this.launchCommand = launchCommand;
             return this;
         }
 
@@ -177,7 +177,7 @@ public abstract class Clinic {
          * @since 1.0.0
          */
         public int run() {
-            return Clinic.run(clazz, args, launchCommand, help, automatic);
+            return Clinic.run(clazz, args, executableName, help, automatic);
         };
 
         /**
@@ -201,12 +201,11 @@ public abstract class Clinic {
          * @since 1.0.0
          */
         public Future<Integer> submit(final ExecutorService service) {
-            return service.submit(Clinic.getCallable(clazz, args, launchCommand, help, automatic));
+            return service.submit(Clinic.getCallable(clazz, args, executableName, help, automatic));
         }
     }
 
     private static final int FAILURE = 1;
-
     private static final int SUCCESS = 0;
 
     /**
@@ -215,14 +214,15 @@ public abstract class Clinic {
      * @param clazz
      *        the class whose methods should be used to run the command line application
      * @return an clinic application builder
+     * @since 1.0.0
      */
     public static Builder cli(final Class<?> clazz) {
         return new Builder(clazz);
     }
 
-    private static String getApplicationHelp(final String launchCommand, final String help, final Collection<Command> commands) {
+    private static String getApplicationHelp(final String executableName, final String help, final Collection<Command> commands) {
         final StringBuilder builder = new StringBuilder(System.lineSeparator());
-        builder.append("Usage:  " + launchCommand + " COMMAND" + System.lineSeparator());
+        builder.append("Usage:  " + executableName + " COMMAND" + System.lineSeparator());
         builder.append(System.lineSeparator());
         if(help != null) {
             builder.append(help + System.lineSeparator());
@@ -253,30 +253,31 @@ public abstract class Clinic {
                     builder.append(System.lineSeparator());
                 });
             builder.append(System.lineSeparator());
-            builder.append("Run '" + launchCommand + " COMMAND --help' for more information on a command." + System.lineSeparator());
+            builder.append("Run '" + executableName + " COMMAND --help' for more information on a command." + System.lineSeparator());
             builder.append(System.lineSeparator());
         }
         return builder.toString();
     }
 
-    private static Callable<Integer> getCallable(final Class<?> clazz, final String[] args, final String launchCommand, final String help,
+    private static Callable<Integer> getCallable(final Class<?> clazz, final String[] args, final String executableName, final String help,
         final boolean automatic) {
         return () -> {
-            return Clinic.run(clazz, args, launchCommand, help, automatic);
+            return Clinic.run(clazz, args, executableName, help, automatic);
         };
     }
 
-    private static Runnable getRunnable(final Class<?> clazz, final String[] args, final String launchCommand, final String help, final boolean automatic) {
+    private static Runnable getRunnable(final Class<?> clazz, final String[] args, final String executableName, final String help, final boolean automatic) {
         return () -> {
-            Clinic.run(clazz, args, help, launchCommand, automatic);
+            Clinic.run(clazz, args, help, executableName, automatic);
         };
     }
 
-    private static int run(final Class<?> clazz, String[] args, final String launchCommand, final String help, final boolean automatic) {
+    private static int run(final Class<?> clazz, String[] args, final String executableName, final String help, final boolean automatic) {
         final Map<String, Command> commands = Arrays.stream(clazz.getDeclaredMethods()).filter((final Method method) -> {
             return Modifier.isStatic(method.getModifiers()) && !"main".equals(method.getName())
-                && (automatic || method.isAnnotationPresent(com.merakianalytics.clinic.annotations.Command.class));
-        }).map((final Method method) -> Command.get(launchCommand, method)).collect(Collectors.toMap(Command::getName, Function.identity()));
+                && (automatic || method.isAnnotationPresent(com.merakianalytics.clinic.annotations.Command.class)
+                    || method.isAnnotationPresent(com.merakianalytics.clinic.annotations.AutoCommand.class));
+        }).map((final Method method) -> Command.get(executableName, method)).collect(Collectors.toMap(Command::getName, Function.identity()));
 
         if(commands.isEmpty()) {
             throw new ClinicAnnotationException("No @Commands were found in " + clazz.getSimpleName() + "!");
@@ -294,7 +295,7 @@ public abstract class Clinic {
 
         if(args.length > 0) {
             if(Common.HELP_OPTION.equals(args[0])) {
-                System.out.print(getApplicationHelp(launchCommand, help, commands.values()));
+                System.out.print(getApplicationHelp(executableName, help, commands.values()));
                 return SUCCESS;
             }
 
@@ -302,7 +303,7 @@ public abstract class Clinic {
             if(!args[0].startsWith("-")) {
                 if(!commands.keySet().contains(args[0])) {
                     System.out.print("Unrecognized command: " + args[0] + "!" + System.lineSeparator());
-                    System.out.print(getApplicationHelp(launchCommand, help, commands.values()));
+                    System.out.print(getApplicationHelp(executableName, help, commands.values()));
                     return FAILURE;
                 }
 
@@ -313,7 +314,7 @@ public abstract class Clinic {
 
         if(command == null) {
             System.out.print("No command was provided!" + System.lineSeparator());
-            System.out.print(getApplicationHelp(launchCommand, help, commands.values()));
+            System.out.print(getApplicationHelp(executableName, help, commands.values()));
             return FAILURE;
         }
 

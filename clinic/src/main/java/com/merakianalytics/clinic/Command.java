@@ -22,41 +22,77 @@ import com.merakianalytics.clinic.exceptions.ClinicParseException;
  * A clinic CLI command
  */
 public class Command {
+    private static class AnnotationData {
+        public static AnnotationData from(final Method method, final com.merakianalytics.clinic.annotations.AutoCommand annotation) {
+            final String name = Default.STRING.equals(annotation.name()) ? Common.toHypenCase(method.getName()) : annotation.name();
+            final String help = Default.STRING.equals(annotation.help()) ? null : annotation.help();
+            final boolean defaultCommand = annotation.defaultCommand();
+            final Option[] options = getOptions(method, true);
+
+            return new AnnotationData(name, help, defaultCommand, options);
+        }
+
+        public static AnnotationData from(final Method method, final com.merakianalytics.clinic.annotations.Command annotation) {
+            final boolean automatic = annotation.automatic();
+            final String name = Default.STRING.equals(annotation.name()) ? Common.toHypenCase(method.getName()) : annotation.name();
+            final String help = Default.STRING.equals(annotation.help()) ? null : annotation.help();
+            final boolean defaultCommand = annotation.defaultCommand();
+            final Option[] options = getOptions(method, automatic);
+
+            return new AnnotationData(name, help, defaultCommand, options);
+        }
+
+        private static Option[] getOptions(final Method method, final boolean automatic) {
+            return Arrays.stream(method.getParameters()).map((final Parameter parameter) -> {
+                if(!parameter.isAnnotationPresent(com.merakianalytics.clinic.annotations.Option.class) && !automatic) {
+                    throw new ClinicAnnotationException(method.getName()
+                        + " is a @Command but has parameters without @Option annotations! Either add @Option annotations to its parameters or make it an automatic command by setting automatic = true or using @AutoCommand instead!");
+                }
+                return Option.get(parameter);
+            }).toArray(Option[]::new);
+        }
+
+        public boolean defaultCommand;
+        public String help;
+        public String name;
+        public Option[] options;
+
+        private AnnotationData(final String name, final String help, final boolean defaultCommand, final Option[] options) {
+            this.name = name;
+            this.help = help;
+            this.defaultCommand = defaultCommand;
+            this.options = options;
+        }
+    }
+
     /**
      * Gets a {@link com.merakianalytics.clinic.Command} from a {@link com.merakianalytics.clinic.annotations.Command}-annotated
      * {@link java.lang.reflect.Method}
      *
-     * @param launchCommand
-     *        the command line prefix that launches your application
+     * @param executableName
+     *        the executable name that launches your application
      * @param method
      *        the method to get a {@link com.merakianalytics.clinic.Command} from
      * @return the {@link com.merakianalytics.clinic.Command} specified by the {@link java.lang.reflect.Method} and its clinic annotations
      */
-    public static Command get(final String launchCommand, final Method method) {
+    public static Command get(final String executableName, final Method method) {
         if(!Modifier.isStatic(method.getModifiers())) {
             throw new ClinicAnnotationException(
                 "Found an @Command annotation on " + method.getName() + ", but the method is not static. All @Command methods must be static.");
         }
 
-        com.merakianalytics.clinic.annotations.Command annotation = method.getAnnotation(com.merakianalytics.clinic.annotations.Command.class);
-        if(annotation == null) {
-            annotation = Default.command(method);
+        final AnnotationData annotationData;
+        if(method.isAnnotationPresent(com.merakianalytics.clinic.annotations.Command.class)) {
+            annotationData = AnnotationData.from(method, method.getAnnotation(com.merakianalytics.clinic.annotations.Command.class));
+        } else if(method.isAnnotationPresent(com.merakianalytics.clinic.annotations.AutoCommand.class)) {
+            annotationData = AnnotationData.from(method, method.getAnnotation(com.merakianalytics.clinic.annotations.AutoCommand.class));
+        } else {
+            annotationData = AnnotationData.from(method, Default.command(method));
         }
-
-        final boolean automatic = annotation.automatic();
-        final String name = Default.STRING.equals(annotation.name()) ? Common.toHypenCase(method.getName()) : annotation.name();
-        final String help = Default.STRING.equals(annotation.help()) ? null : annotation.help();
-        final boolean defaultCommand = annotation.defaultCommand();
-        final Option[] options = Arrays.stream(method.getParameters()).map((final Parameter parameter) -> {
-            if(!parameter.isAnnotationPresent(com.merakianalytics.clinic.annotations.Option.class) && !automatic) {
-                return null;
-            }
-            return Option.get(parameter);
-        }).toArray(Option[]::new);
 
         // Verify there aren't any duplicate option names
         final Set<String> optionNames = new HashSet<>();
-        for(final Option option : options) {
+        for(final Option option : annotationData.options) {
             if(option == null) {
                 continue;
             }
@@ -68,7 +104,7 @@ public class Command {
             }
         }
 
-        return new Command(method, name, launchCommand, help, defaultCommand, options);
+        return new Command(method, annotationData.name, executableName, annotationData.help, annotationData.defaultCommand, annotationData.options);
     }
 
     private static String toString(final Object object) {
@@ -103,17 +139,17 @@ public class Command {
     }
 
     private final boolean defaultCommand;
+    private final String executableName;
     private final String help;
-    private final String launchCommand;
     private final Method method;
     private final String name;
     private final Option[] options;
 
-    private Command(final Method method, final String name, final String launchCommand, final String help, final boolean defaultCommand,
+    private Command(final Method method, final String name, final String executableName, final String help, final boolean defaultCommand,
         final Option[] options) {
         this.method = method;
         this.name = name;
-        this.launchCommand = launchCommand;
+        this.executableName = executableName;
         this.help = help;
         this.defaultCommand = defaultCommand;
         this.options = options;
@@ -262,7 +298,7 @@ public class Command {
 
     private String getCommandHelp() {
         final StringBuilder builder = new StringBuilder(System.lineSeparator());
-        builder.append("Usage:  " + launchCommand + " " + name + (options.length > 0 ? " [OPTIONS]" : "") + System.lineSeparator());
+        builder.append("Usage:  " + executableName + " " + name + (options.length > 0 ? " [OPTIONS]" : "") + System.lineSeparator());
         builder.append(System.lineSeparator());
         if(help != null) {
             builder.append(help + System.lineSeparator());
@@ -272,7 +308,7 @@ public class Command {
         if(options.length > 0) {
             int maxNamesLength = 0;
             for(final Option option : options) {
-                final int namesLength = Arrays.stream(option.getNames()).mapToInt(String::length).sum() + option.getNames().length - 1;
+                final int namesLength = Arrays.stream(option.getNames()).mapToInt(String::length).sum() + 2 * (option.getNames().length - 1);
                 if(namesLength > maxNamesLength) {
                     maxNamesLength = namesLength;
                 }
@@ -280,7 +316,7 @@ public class Command {
 
             builder.append("Options:" + System.lineSeparator());
             for(final Option option : options) {
-                final String names = String.join("/", option.getNames());
+                final String names = String.join(", ", option.getNames());
                 builder.append("  " + names);
                 final int buffer = maxNamesLength - names.length();
                 for(int i = 0; i < buffer; i++) {
