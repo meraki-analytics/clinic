@@ -17,7 +17,7 @@ public class TestOptionGetValue {
         final String[] args = values.stream().map((final Object object) -> object == null ? null : object.toString()).toArray(String[]::new);
 
         for(final Parameter parameter : testMethodContainer.getDeclaredMethods()[0].getParameters()) {
-            final Option option = Option.get(parameter);
+            final Option option = Option.get(null, parameter);
 
             if(!option.isMultiArgument()) {
                 assertThrows(IllegalArgumentException.class, () -> option.getValue());
@@ -125,12 +125,12 @@ public class TestOptionGetValue {
     @Test
     public void testFlag() {
         for(final Parameter parameter : Options.Flag.Off.class.getDeclaredMethods()[0].getParameters()) {
-            final Option option = Option.get(parameter);
+            final Option option = Option.get(null, parameter);
             assertThrows(IllegalArgumentException.class, () -> option.getValue());
         }
 
         for(final Parameter parameter : Options.Flag.On.class.getDeclaredMethods()[0].getParameters()) {
-            final Option option = Option.get(parameter);
+            final Option option = Option.get(null, parameter);
             final Object result = option.getValue();
             assertThrows(IllegalArgumentException.class, () -> option.getValue((String)null));
             assertThrows(IllegalArgumentException.class, () -> option.getValue(new String[2]));

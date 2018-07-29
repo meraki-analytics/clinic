@@ -43,40 +43,40 @@ public class TestOption {
     public void testBadType() {
         for(final Parameter parameter : Options.BadType.class.getDeclaredMethods()[0].getParameters()) {
             assertThrows(ClinicAnnotationException.class, () -> {
-                Option.get(parameter);
+                Option.get(null, parameter);
             });
         }
 
         for(final Parameter parameter : Options.BadType.NoDefault.class.getDeclaredMethods()[0].getParameters()) {
-            assertParametersExtractedCorrectly(parameter, Option.get(parameter));
+            assertParametersExtractedCorrectly(parameter, Option.get(null, parameter));
         }
     }
 
     @Test
     public void testBooleans() {
         for(final Parameter parameter : Options.Booleans.class.getDeclaredMethods()[0].getParameters()) {
-            assertParametersExtractedCorrectly(parameter, Option.get(parameter));
+            assertParametersExtractedCorrectly(parameter, Option.get(null, parameter));
         }
     }
 
     @Test
     public void testBytes() {
         for(final Parameter parameter : Options.Bytes.class.getDeclaredMethods()[0].getParameters()) {
-            assertParametersExtractedCorrectly(parameter, Option.get(parameter));
+            assertParametersExtractedCorrectly(parameter, Option.get(null, parameter));
         }
     }
 
     @Test
     public void testChars() {
         for(final Parameter parameter : Options.Chars.class.getDeclaredMethods()[0].getParameters()) {
-            assertParametersExtractedCorrectly(parameter, Option.get(parameter));
+            assertParametersExtractedCorrectly(parameter, Option.get(null, parameter));
         }
     }
 
     @Test
     public void testDoubles() {
         for(final Parameter parameter : Options.Doubles.class.getDeclaredMethods()[0].getParameters()) {
-            assertParametersExtractedCorrectly(parameter, Option.get(parameter));
+            assertParametersExtractedCorrectly(parameter, Option.get(null, parameter));
         }
     }
 
@@ -84,40 +84,40 @@ public class TestOption {
     public void testFlag() {
         for(final Parameter parameter : Options.Flag.NonBoolean.class.getDeclaredMethods()[0].getParameters()) {
             assertThrows(ClinicAnnotationException.class, () -> {
-                Option.get(parameter);
+                Option.get(null, parameter);
             });
         }
 
         for(final Parameter parameter : Options.Flag.class.getDeclaredMethods()[0].getParameters()) {
-            assertParametersExtractedCorrectly(parameter, Option.get(parameter));
+            assertParametersExtractedCorrectly(parameter, Option.get(null, parameter));
         }
     }
 
     @Test
     public void testFloats() {
         for(final Parameter parameter : Options.Floats.class.getDeclaredMethods()[0].getParameters()) {
-            assertParametersExtractedCorrectly(parameter, Option.get(parameter));
+            assertParametersExtractedCorrectly(parameter, Option.get(null, parameter));
         }
     }
 
     @Test
     public void testHelp() {
         for(final Parameter parameter : Options.Help.class.getDeclaredMethods()[0].getParameters()) {
-            assertParametersExtractedCorrectly(parameter, Option.get(parameter));
+            assertParametersExtractedCorrectly(parameter, Option.get(null, parameter));
         }
     }
 
     @Test
     public void testIntegers() {
         for(final Parameter parameter : Options.Integers.class.getDeclaredMethods()[0].getParameters()) {
-            assertParametersExtractedCorrectly(parameter, Option.get(parameter));
+            assertParametersExtractedCorrectly(parameter, Option.get(null, parameter));
         }
     }
 
     @Test
     public void testLongs() {
         for(final Parameter parameter : Options.Longs.class.getDeclaredMethods()[0].getParameters()) {
-            assertParametersExtractedCorrectly(parameter, Option.get(parameter));
+            assertParametersExtractedCorrectly(parameter, Option.get(null, parameter));
         }
     }
 
@@ -125,60 +125,60 @@ public class TestOption {
     public void testMultiArgument() {
         for(final Parameter parameter : Options.MultiArgument.Interface.class.getDeclaredMethods()[0].getParameters()) {
             assertThrows(ClinicAnnotationException.class, () -> {
-                Option.get(parameter);
+                Option.get(null, parameter);
             });
         }
 
         for(final Parameter parameter : Options.MultiArgument.AbstractClass.class.getDeclaredMethods()[0].getParameters()) {
             assertThrows(ClinicAnnotationException.class, () -> {
-                Option.get(parameter);
+                Option.get(null, parameter);
             });
         }
 
         for(final Parameter parameter : Options.MultiArgument.class.getDeclaredMethods()[0].getParameters()) {
-            assertParametersExtractedCorrectly(parameter, Option.get(parameter));
+            assertParametersExtractedCorrectly(parameter, Option.get(null, parameter));
         }
     }
 
     @Test
     public void testNames() {
         for(final Parameter parameter : Options.Names.class.getDeclaredMethods()[0].getParameters()) {
-            assertParametersExtractedCorrectly(parameter, Option.get(parameter));
+            assertParametersExtractedCorrectly(parameter, Option.get(null, parameter));
         }
     }
 
     @Test
     public void testRequired() {
         for(final Parameter parameter : Options.Required.class.getDeclaredMethods()[0].getParameters()) {
-            assertParametersExtractedCorrectly(parameter, Option.get(parameter));
+            assertParametersExtractedCorrectly(parameter, Option.get(null, parameter));
         }
     }
 
     @Test
     public void testShorts() {
         for(final Parameter parameter : Options.Shorts.class.getDeclaredMethods()[0].getParameters()) {
-            assertParametersExtractedCorrectly(parameter, Option.get(parameter));
+            assertParametersExtractedCorrectly(parameter, Option.get(null, parameter));
         }
     }
 
     @Test
     public void testShowDefault() {
         for(final Parameter parameter : Options.ShowDefault.class.getDeclaredMethods()[0].getParameters()) {
-            assertParametersExtractedCorrectly(parameter, Option.get(parameter));
+            assertParametersExtractedCorrectly(parameter, Option.get(null, parameter));
         }
     }
 
     @Test
     public void testStrings() {
         for(final Parameter parameter : Options.Strings.class.getDeclaredMethods()[0].getParameters()) {
-            assertParametersExtractedCorrectly(parameter, Option.get(parameter));
+            assertParametersExtractedCorrectly(parameter, Option.get(null, parameter));
         }
     }
 
     @Test
     public void testValidType() {
         for(final Parameter parameter : Options.ValidTypes.class.getDeclaredMethods()[0].getParameters()) {
-            assertParametersExtractedCorrectly(parameter, Option.get(parameter));
+            assertParametersExtractedCorrectly(parameter, Option.get(null, parameter));
         }
     }
 }

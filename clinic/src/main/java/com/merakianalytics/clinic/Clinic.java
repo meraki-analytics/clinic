@@ -242,13 +242,12 @@ public abstract class Clinic {
             commands.stream().sorted((final Command one, final Command two) -> one.getName().compareTo(two.getName()))
                 .forEachOrdered((final Command command) -> {
                     builder.append("  " + command.getName());
-                    final int buffer = maxLength - command.getName().length();
-                    for(int i = 0; i < buffer; i++) {
-                        builder.append(' ');
-                    }
-                    builder.append("  ");
                     if(command.getHelp() != null) {
-                        builder.append(" " + command.getHelp());
+                        final int buffer = maxLength - command.getName().length();
+                        for(int i = 0; i < buffer; i++) {
+                            builder.append(' ');
+                        }
+                        builder.append("   " + command.getHelp());
                     }
                     builder.append(System.lineSeparator());
                 });

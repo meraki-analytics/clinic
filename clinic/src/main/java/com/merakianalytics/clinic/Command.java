@@ -48,7 +48,7 @@ public class Command {
                     throw new ClinicAnnotationException(method.getName()
                         + " is a @Command but has parameters without @Option annotations! Either add @Option annotations to its parameters or make it an automatic command by setting automatic = true or using @AutoCommand instead!");
                 }
-                return Option.get(parameter);
+                return Option.get(method, parameter);
             }).toArray(Option[]::new);
         }
 
@@ -318,19 +318,21 @@ public class Command {
             for(final Option option : options) {
                 final String names = String.join(", ", option.getNames());
                 builder.append("  " + names);
-                final int buffer = maxNamesLength - names.length();
-                for(int i = 0; i < buffer; i++) {
-                    builder.append(' ');
-                }
-                builder.append("  ");
-                if(option.getHelp() != null) {
-                    builder.append(" " + option.getHelp());
-                }
-                if(option.isRequired()) {
-                    builder.append(" (required)");
-                }
-                if(option.isShowDefault()) {
-                    builder.append(" (default " + toString(option.getDefaultValue()) + ")");
+                if(option.getHelp() != null || option.isRequired() || option.isShowDefault()) {
+                    final int buffer = maxNamesLength - names.length();
+                    for(int i = 0; i < buffer; i++) {
+                        builder.append(' ');
+                    }
+                    builder.append("  ");
+                    if(option.getHelp() != null) {
+                        builder.append(" " + option.getHelp());
+                    }
+                    if(option.isRequired()) {
+                        builder.append(" (required)");
+                    }
+                    if(option.isShowDefault()) {
+                        builder.append(" (default " + toString(option.getDefaultValue()) + ")");
+                    }
                 }
                 builder.append(System.lineSeparator());
             }

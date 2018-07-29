@@ -3,6 +3,7 @@ package com.merakianalytics.clinic;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.Collection;
@@ -60,11 +61,13 @@ public class Option {
      * Gets a {@link com.merakianalytics.clinic.Option} from a {@link com.merakianalytics.clinic.annotations.Option}-annotated
      * {@link java.lang.reflect.Parameter}
      *
+     * @param method
+     *        the {@link java.lang.reflect.Method} that the {@link java.lang.reflect.Parameter} is part of
      * @param parameter
-     *        the parameter to get a {@link com.merakianalytics.clinic.Option} from
+     *        the {@link java.lang.reflect.Parameter} to get a {@link com.merakianalytics.clinic.Option} from
      * @return the {@link com.merakianalytics.clinic.Option} specified by the {@link java.lang.reflect.Parameter} and its clinic annotations
      */
-    public static Option get(final Parameter parameter) {
+    public static Option get(final Method method, final Parameter parameter) {
         com.merakianalytics.clinic.annotations.Option annotation = parameter.getAnnotation(com.merakianalytics.clinic.annotations.Option.class);
         if(annotation == null) {
             annotation = Default.option(parameter);
@@ -79,7 +82,7 @@ public class Option {
                 }
             }
         } else {
-            names = getNames(parameter);
+            names = getNames(method, parameter);
             for(final String name : names) {
                 if(Common.HELP_OPTION.equals(name)) {
                     throw new ClinicAnnotationException(
@@ -101,6 +104,10 @@ public class Option {
         final String help = Default.STRING.equals(annotation.help()) ? null : annotation.help();
         final boolean showDefault = required ? false : annotation.showDefault();
         final boolean flag = annotation.flag();
+        if(required && flag) {
+            throw new ClinicAnnotationException("Flag option " + String.join("/", names) + " can't be required!");
+        }
+
         final boolean multiArgument = parameter.getType().isArray() || Collection.class.isAssignableFrom(parameter.getType());
         final Class<?> genericType = Default.CLASS.equals(annotation.type()) ? null : annotation.type();
 
@@ -427,10 +434,11 @@ public class Option {
         return Default.STRING.equals(annotation.defaultValue()) ? null : instantiate(type, annotation.defaultValue(), names);
     }
 
-    private static String[] getNames(final Parameter parameter) {
+    private static String[] getNames(final Method method, final Parameter parameter) {
         if(!parameter.isNamePresent()) {
             throw new ClinicAnnotationException(
-                "Couldn't get a default name for an @Option annotation. Either compile your application with the -parameter option or add names to the @Option annotation.");
+                "Couldn't get a default name for an @Option annotation on the " + method.getName()
+                    + " method. Either compile your application with the -parameter option or add names to the @Option annotation.");
         }
         final String name = (parameter.getName().length() > 1 ? "--" : "-") + Common.toHypenCase(parameter.getName());
         return new String[] {name};
