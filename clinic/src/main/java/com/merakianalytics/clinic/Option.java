@@ -104,16 +104,15 @@ public class Option {
         final String help = Default.STRING.equals(annotation.help()) ? null : annotation.help();
         final boolean showDefault = required ? false : annotation.showDefault();
         final boolean flag = annotation.flag();
+        if(flag && !boolean.class.equals(parameter.getType()) && !Boolean.class.equals(parameter.getType())) {
+            throw new ClinicAnnotationException("The @Option " + String.join("/", names) + " is set as a flag but it isn't a boolean!");
+        }
         if(required && flag) {
-            throw new ClinicAnnotationException("Flag option " + String.join("/", names) + " can't be required!");
+            throw new ClinicAnnotationException("Flag @Option " + String.join("/", names) + " can't be required!");
         }
 
         final boolean multiArgument = parameter.getType().isArray() || Collection.class.isAssignableFrom(parameter.getType());
         final Class<?> genericType = Default.CLASS.equals(annotation.type()) ? null : annotation.type();
-
-        if(flag && !boolean.class.equals(parameter.getType()) && !Boolean.class.equals(parameter.getType())) {
-            throw new ClinicAnnotationException("The @Option " + String.join("/", names) + " is set as a flag but it isn't a boolean!");
-        }
 
         return new Option(parameter, names, required, defaultValue, help, showDefault, flag, multiArgument, genericType);
     }
